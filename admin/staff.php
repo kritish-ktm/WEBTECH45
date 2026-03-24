@@ -52,42 +52,125 @@ if(in_array($action,['create','edit'])){
     <?php include __DIR__.'/includes/admin_footer.php'; exit;
 }
 
-$staff=$db->query("SELECT s.*,COUNT(DISTINCT m.ModuleID) AS ModuleCount,COUNT(DISTINCT p.ProgrammeID) AS ProgrammeCount FROM Staff s LEFT JOIN Modules m ON m.ModuleLeaderID=s.StaffID LEFT JOIN Programmes p ON p.ProgrammeLeaderID=s.StaffID GROUP BY s.StaffID ORDER BY s.Name")->fetchAll();
+$staff=$db->query("SELECT s.*,COUNT(DISTINCT m.ModuleID) AS ModuleCount,COUNT(DISTINCT p.ProgrammeID) AS ProgrammeCount FROM Staff s LEFT JOIN Modules m ON m.ModuleLeaderID=s.StaffID LEFT JOIN Programmes p ON p.ProgrammeLeaderID=s.StaffID GROUP BY s.StaffID ORDER BY COALESCE(NULLIF(s.Department,''),'ZZZ'), s.Name")->fetchAll();
 $pageTitle='Staff'; include __DIR__.'/includes/admin_header.php'; ?>
 
 <div class="page-header">
-    <div class="page-header-left"><div class="ku-divider-sm"></div><h1>Staff</h1><p>Manage academic staff and their roles.</p></div>
-    <a href="/student_course_hub/admin/staff.php?action=create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add Staff</a>
-</div>
-<div class="table-wrap">
-    <div class="table-toolbar">
-        <span class="table-toolbar-title">All Staff (<?= count($staff) ?>)</span>
-        <input type="search" class="table-search" placeholder="Search…" data-table-search="staffTable">
+    <div class="page-header-left">
+        <div class="ku-divider-sm"></div>
+        <h1>Staff</h1>
+        <p>Manage academic staff grouped by department — <?= count($staff) ?> members total.</p>
     </div>
-    <table id="staffTable">
-        <thead><tr><th>Name</th><th>Title / Department</th><th>Modules</th><th>Programmes</th><th>Actions</th></tr></thead>
-        <tbody>
-        <?php if(empty($staff)):?><tr class="empty-row"><td colspan="5">No staff found.</td></tr>
-        <?php else: foreach($staff as $s):?>
-        <tr>
-            <td><strong><?= h($s['Name']) ?></strong></td>
-            <td class="text-small">
-                <?= !empty($s['Title'])?h($s['Title']):'—' ?>
-                <?php if(!empty($s['Department'])):?><br><span class="text-muted"><?= h($s['Department']) ?></span><?php endif;?>
-            </td>
-            <td><span class="badge badge-blue"><?= $s['ModuleCount'] ?></span></td>
-            <td><span class="badge badge-orange"><?= $s['ProgrammeCount'] ?></span></td>
-            <td>
-                <div class="table-actions">
-                    <a href="/student_course_hub/admin/staff.php?action=edit&id=<?= $s['StaffID'] ?>" class="btn btn-outline btn-sm"><i class="bi bi-pencil"></i> Edit</a>
-                    <form method="POST" action="/student_course_hub/admin/staff.php?action=delete&id=<?= $s['StaffID'] ?>">
-                        <button type="submit" class="btn btn-danger btn-sm" data-confirm="Remove '<?= h($s['Name']) ?>'?"><i class="bi bi-trash"></i> Remove</button>
-                    </form>
-                </div>
-            </td>
-        </tr>
-        <?php endforeach; endif;?>
-        </tbody>
-    </table>
+    <a href="/student_course_hub/admin/staff.php?action=create" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> Add Staff
+    </a>
 </div>
+
+<?php if (empty($staff)): ?>
+<div class="table-wrap">
+    <tr class="empty-row"><td colspan="5">No staff found.</td></tr>
+</div>
+
+<?php else:
+    // Group staff by department
+    $grouped = [];
+    foreach ($staff as $s) {
+        $dept = !empty($s['Department']) ? $s['Department'] : 'Unassigned';
+        $grouped[$dept][] = $s;
+    }
+    ksort($grouped);
+?>
+
+<?php foreach ($grouped as $department => $members): ?>
+<div style="margin-bottom:32px">
+
+    <!-- Department Header -->
+    <div style="display:flex; align-items:center; justify-content:space-between;
+                padding:12px 18px; background:var(--ku-red); color:var(--white);
+                margin-bottom:1px">
+        <div style="display:flex; align-items:center; gap:10px">
+            <i class="bi bi-building" style="font-size:1rem; opacity:0.8"></i>
+            <strong style="font-family:var(--font-serif); font-size:0.95rem">
+                <?= h($department) ?>
+            </strong>
+        </div>
+        <span style="font-size:0.75rem; opacity:0.75; font-weight:500">
+            <?= count($members) ?> member<?= count($members) !== 1 ? 's' : '' ?>
+        </span>
+    </div>
+
+    <!-- Staff Table for this department -->
+    <div class="table-wrap" style="border-top:none">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Title</th>
+                    <th>Modules Led</th>
+                    <th>Programmes Led</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php foreach ($members as $s): ?>
+            <tr>
+                <td>
+                    <div style="display:flex; align-items:center; gap:10px">
+                        <div style="width:34px; height:34px; border-radius:50%;
+                                    background:var(--ku-red-light); color:var(--ku-red);
+                                    display:flex; align-items:center; justify-content:center;
+                                    font-weight:700; font-size:0.78rem; flex-shrink:0">
+                            <?php
+                            $initials = '';
+                            foreach (explode(' ', $s['Name']) as $part)
+                                $initials .= strtoupper(substr($part, 0, 1));
+                            echo h(substr($initials, 0, 2));
+                            ?>
+                        </div>
+                        <strong style="font-size:0.88rem"><?= h($s['Name']) ?></strong>
+                    </div>
+                </td>
+                <td class="text-small text-muted">
+                    <?= !empty($s['Title']) ? h($s['Title']) : '<span style="color:var(--grey-400)">—</span>' ?>
+                </td>
+                <td>
+                    <?php if ($s['ModuleCount'] > 0): ?>
+                    <span class="badge badge-blue">
+                        <i class="bi bi-journal-text"></i> <?= $s['ModuleCount'] ?> module<?= $s['ModuleCount'] !== 1 ? 's' : '' ?>
+                    </span>
+                    <?php else: ?>
+                    <span style="color:var(--grey-400); font-size:0.78rem">None</span>
+                    <?php endif; ?>
+                </td>
+                <td>
+                    <?php if ($s['ProgrammeCount'] > 0): ?>
+                    <span class="badge badge-orange">
+                        <i class="bi bi-mortarboard"></i> <?= $s['ProgrammeCount'] ?> programme<?= $s['ProgrammeCount'] !== 1 ? 's' : '' ?>
+                    </span>
+                    <?php else: ?>
+                    <span style="color:var(--grey-400); font-size:0.78rem">None</span>
+                    <?php endif; ?>
+                </td>
+                <td>
+                    <div class="table-actions">
+                        <a href="/student_course_hub/admin/staff.php?action=edit&id=<?= $s['StaffID'] ?>"
+                           class="btn btn-outline btn-sm">
+                            <i class="bi bi-pencil"></i> Edit
+                        </a>
+                        <form method="POST" action="/student_course_hub/admin/staff.php?action=delete&id=<?= $s['StaffID'] ?>">
+                            <button type="submit" class="btn btn-danger btn-sm"
+                                    data-confirm="Remove '<?= h($s['Name']) ?>' from <?= h($department) ?>?">
+                                <i class="bi bi-trash"></i> Remove
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+<?php endforeach; endif; ?>
+
 <?php include __DIR__.'/includes/admin_footer.php'; ?>
