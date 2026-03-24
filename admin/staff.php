@@ -52,7 +52,31 @@ if(in_array($action,['create','edit'])){
     <?php include __DIR__.'/includes/admin_footer.php'; exit;
 }
 
-$staff=$db->query("SELECT s.*,COUNT(DISTINCT m.ModuleID) AS ModuleCount,COUNT(DISTINCT p.ProgrammeID) AS ProgrammeCount FROM Staff s LEFT JOIN Modules m ON m.ModuleLeaderID=s.StaffID LEFT JOIN Programmes p ON p.ProgrammeLeaderID=s.StaffID GROUP BY s.StaffID ORDER BY COALESCE(NULLIF(s.Department,''),'ZZZ'), s.Name")->fetchAll();
+$staff = $db->query("
+    SELECT s.*,
+           COUNT(DISTINCT m.ModuleID)    AS ModuleCount,
+           COUNT(DISTINCT p.ProgrammeID) AS ProgrammeCount
+    FROM Staff s
+    LEFT JOIN Modules m    ON m.ModuleLeaderID    = s.StaffID
+    LEFT JOIN Programmes p ON p.ProgrammeLeaderID = s.StaffID
+    GROUP BY s.StaffID
+    ORDER BY COALESCE(NULLIF(s.Department,''),'ZZZ'), s.Name
+")->fetchAll();
+
+// Fetch actual module names per staff member
+$modulesByStaff = [];
+$moduleRows = $db->query("SELECT ModuleLeaderID, ModuleName FROM Modules WHERE ModuleLeaderID IS NOT NULL ORDER BY ModuleName")->fetchAll();
+foreach ($moduleRows as $row) {
+    $modulesByStaff[$row['ModuleLeaderID']][] = $row['ModuleName'];
+}
+
+// Fetch actual programme names per staff member
+$programmesByStaff = [];
+$progRows = $db->query("SELECT ProgrammeLeaderID, ProgrammeName FROM Programmes WHERE ProgrammeLeaderID IS NOT NULL ORDER BY ProgrammeName")->fetchAll();
+foreach ($progRows as $row) {
+    $programmesByStaff[$row['ProgrammeLeaderID']][] = $row['ProgrammeName'];
+}
+
 $pageTitle='Staff'; include __DIR__.'/includes/admin_header.php'; ?>
 
 <div class="page-header">
@@ -134,21 +158,35 @@ $pageTitle='Staff'; include __DIR__.'/includes/admin_header.php'; ?>
                     <?= !empty($s['Title']) ? h($s['Title']) : '<span style="color:var(--grey-400)">—</span>' ?>
                 </td>
                 <td>
-                    <?php if ($s['ModuleCount'] > 0): ?>
-                    <span class="badge badge-blue">
-                        <i class="bi bi-journal-text"></i> <?= $s['ModuleCount'] ?> module<?= $s['ModuleCount'] !== 1 ? 's' : '' ?>
-                    </span>
+                    <?php if (!empty($modulesByStaff[$s['StaffID']])): ?>
+                    <div style="display:flex; flex-direction:column; gap:3px">
+                        <?php foreach ($modulesByStaff[$s['StaffID']] as $modName): ?>
+                        <span style="display:inline-flex; align-items:center; gap:4px;
+                                     background:var(--info-bg); color:var(--info);
+                                     font-size:0.72rem; font-weight:600;
+                                     padding:2px 8px; border-radius:2px; white-space:nowrap">
+                            <i class="bi bi-journal-text"></i> <?= h($modName) ?>
+                        </span>
+                        <?php endforeach; ?>
+                    </div>
                     <?php else: ?>
-                    <span style="color:var(--grey-400); font-size:0.78rem">None</span>
+                    <span style="color:var(--grey-400); font-size:0.78rem; font-style:italic">No modules</span>
                     <?php endif; ?>
                 </td>
                 <td>
-                    <?php if ($s['ProgrammeCount'] > 0): ?>
-                    <span class="badge badge-orange">
-                        <i class="bi bi-mortarboard"></i> <?= $s['ProgrammeCount'] ?> programme<?= $s['ProgrammeCount'] !== 1 ? 's' : '' ?>
-                    </span>
+                    <?php if (!empty($programmesByStaff[$s['StaffID']])): ?>
+                    <div style="display:flex; flex-direction:column; gap:3px">
+                        <?php foreach ($programmesByStaff[$s['StaffID']] as $progName): ?>
+                        <span style="display:inline-flex; align-items:center; gap:4px;
+                                     background:var(--ku-red-light); color:var(--ku-red);
+                                     font-size:0.72rem; font-weight:600;
+                                     padding:2px 8px; border-radius:2px; white-space:nowrap">
+                            <i class="bi bi-mortarboard"></i> <?= h($progName) ?>
+                        </span>
+                        <?php endforeach; ?>
+                    </div>
                     <?php else: ?>
-                    <span style="color:var(--grey-400); font-size:0.78rem">None</span>
+                    <span style="color:var(--grey-400); font-size:0.78rem; font-style:italic">No programmes</span>
                     <?php endif; ?>
                 </td>
                 <td>
