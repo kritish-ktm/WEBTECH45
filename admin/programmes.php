@@ -158,12 +158,15 @@ if ($action === 'modules' && $id) {
 }
 
 $programmes = $db->query("
-    SELECT p.*,l.LevelName,s.Name AS LeaderName,
+    SELECT p.*, l.LevelName,
+           s.Name AS LeaderName,
+           s.Title AS LeaderTitle,
+           s.Department AS LeaderDepartment,
            (SELECT COUNT(*) FROM InterestedStudents i WHERE i.ProgrammeID=p.ProgrammeID) AS InterestCount
     FROM Programmes p
     JOIN Levels l ON p.LevelID=l.LevelID
     LEFT JOIN Staff s ON p.ProgrammeLeaderID=s.StaffID
-    ORDER BY l.LevelID,p.ProgrammeName
+    ORDER BY l.LevelID, p.ProgrammeName
 ")->fetchAll();
 $levels = $db->query("SELECT * FROM Levels")->fetchAll();
 $staff  = $db->query("SELECT * FROM Staff ORDER BY Name")->fetchAll();
@@ -270,7 +273,37 @@ if (in_array($action,['create','edit'])): ?>
         <tr>
             <td><strong><?= h($prog['ProgrammeName']) ?></strong></td>
             <td><span class="badge <?= $prog['LevelID']==1?'badge-blue':'badge-orange' ?>"><?= h($prog['LevelName']) ?></span></td>
-            <td class="text-muted text-small"><?= h($prog['LeaderName']??'—') ?></td>
+            <td>
+                <?php if (!empty($prog['LeaderName'])): ?>
+                <div style="display:flex; align-items:center; gap:8px">
+                    <div style="width:30px; height:30px; border-radius:50%;
+                                background:var(--ku-red); color:var(--white);
+                                display:flex; align-items:center; justify-content:center;
+                                font-size:0.7rem; font-weight:700; flex-shrink:0">
+                        <?php
+                        $ini = '';
+                        foreach (explode(' ', $prog['LeaderName']) as $part)
+                            $ini .= strtoupper(substr($part, 0, 1));
+                        echo h(substr($ini, 0, 2));
+                        ?>
+                    </div>
+                    <div>
+                        <span style="font-size:0.83rem; font-weight:600; display:block; color:var(--black)">
+                            <?= h($prog['LeaderName']) ?>
+                        </span>
+                        <?php if (!empty($prog['LeaderTitle']) || !empty($prog['LeaderDepartment'])): ?>
+                        <span style="font-size:0.72rem; color:var(--grey-400); display:block">
+                            <?= h($prog['LeaderTitle'] ?? '') ?>
+                            <?php if (!empty($prog['LeaderTitle']) && !empty($prog['LeaderDepartment'])): ?> &middot; <?php endif; ?>
+                            <?= h($prog['LeaderDepartment'] ?? '') ?>
+                        </span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <?php else: ?>
+                <span style="color:var(--grey-400); font-size:0.82rem; font-style:italic">Not assigned</span>
+                <?php endif; ?>
+            </td>
             <td><span class="badge badge-grey"><?= $prog['InterestCount'] ?></span></td>
             <td><?= $prog['Published'] ? '<span class="badge badge-green"><i class="bi bi-circle-fill" style="font-size:0.5rem"></i> Live</span>' : '<span class="badge badge-grey"><i class="bi bi-circle" style="font-size:0.5rem"></i> Draft</span>' ?></td>
             <td>
