@@ -1,26 +1,65 @@
 <?php
+
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path' => '/',
+    'secure' => false, // localhost
+    'httponly' => true,
+    'samesite' => 'Strict'
+]);
+
 session_start();
+
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/helpers.php';
 
 if (isAdminLoggedIn()) redirect(BASE_URL . '/admin/dashboard.php');
 
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+if (!isset($_SESSION['login_attempts'])) {
+    $_SESSION['login_attempts'] = 0;
+    $_SESSION['last_attempt'] = time();
+}
+
 $error = '';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    if (!hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'] ?? '')) {
+        die('Invalid CSRF token');
+    }
+
+    if ($_SESSION['login_attempts'] >= 5 && time() - $_SESSION['last_attempt'] < 300) {
+        die('Too many attempts. Try again later.');
+    }
+
     $username = sanitize($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
+
     if (!empty($username) && !empty($password)) {
         $db   = getDB();
         $stmt = $db->prepare("SELECT * FROM Admins WHERE Username = ? LIMIT 1");
         $stmt->execute([$username]);
         $admin = $stmt->fetch();
-        if ($admin && password_verify($password, $admin['PasswordHash'])) {
+
+        $hash = $admin['PasswordHash'] ?? password_hash('dummy', PASSWORD_DEFAULT);
+
+        if ($admin && password_verify($password, $hash)) {
             session_regenerate_id(true);
+
             $_SESSION['admin_id']   = $admin['AdminID'];
             $_SESSION['admin_name'] = $admin['Username'];
             $_SESSION['admin_role'] = $admin['Role'];
+
+            $_SESSION['login_attempts'] = 0;
+
             redirect(BASE_URL . '/admin/dashboard.php');
         } else {
+            $_SESSION['login_attempts']++;
+            $_SESSION['last_attempt'] = time();
             $error = 'Invalid username or password.';
         }
     } else {
@@ -28,63 +67,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login — UniHub</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Serif:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="/student_course_hub/assets/css/admin.css">
 </head>
 <body>
 <div class="login-page">
-    <!-- Left panel -->
-    <div class="login-left">
-        <div class="login-left-content">
-            <div class="login-left-emblem">
-                <i class="bi bi-mortarboard-fill"></i>
-            </div>
-            <h1>UniHub<br>Administration</h1>
-            <p>Manage degree programmes, modules, academic staff and student mailing lists from one place.</p>
-        </div>
-    </div>
-    <!-- Right panel -->
     <div class="login-right">
         <div class="login-card">
-            <div class="login-divider"></div>
             <h2>Sign In</h2>
-            <p class="login-sub">Enter your credentials to access the admin panel.</p>
 
             <?php if ($error): ?>
             <div class="alert alert-error">
-                <i class="bi bi-exclamation-circle"></i> <?= h($error) ?>
+                <?= h($error) ?>
             </div>
             <?php endif; ?>
 
             <form method="POST" action="/student_course_hub/admin/login.php">
+                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+
                 <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" name="username"
+                    <label>Username</label>
+                    <input type="text" name="username"
                            value="<?= isset($_POST['username']) ? h($_POST['username']) : '' ?>"
-                           autocomplete="username" autofocus required>
+                           required>
                 </div>
+
                 <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" name="password"
-                           autocomplete="current-password" required>
+                    <label>Password</label>
+                    <input type="password" name="password" required>
                 </div>
-                <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; padding:11px; margin-top:4px">
-                    <i class="bi bi-box-arrow-in-right"></i> Sign In
-                </button>
+
+                <button type="submit">Sign In</button>
             </form>
 
-            <p style="margin-top:20px; font-size:0.75rem; color:var(--grey-400); text-align:center">
-                Default: <code>admin</code> / <code>admin123</code>
-            </p>
         </div>
     </div>
 </div>
