@@ -16,6 +16,7 @@
 <div class="top-bar">
     <div class="container">
         <a href="/student_course_hub/admin/login.php"><i class="bi bi-shield-lock"></i> Admin Login</a>
+        <a href="/student_course_hub/staff/login.php"><i class="bi bi-shield-lock"></i> Staff Login</a>
         <span>|</span>
         <span><i class="bi bi-geo-alt"></i> London, United Kingdom</span>
     </div>
