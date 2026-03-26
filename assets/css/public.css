@@ -46,13 +46,7 @@ img { max-width: 100%; display: block; }
 /* ---- Layout ---- */
 .container { max-width: var(--max-w); margin: 0 auto; padding: 0 32px; }
 
-<<<<<<< HEAD
 /*ANIMATIONS */
-=======
-/* ================================================
-   ANIMATIONS
-================================================ */
->>>>>>> 8a0a1e23c8ef204796043b66d82e36e2f3536cd3
 @keyframes fadeUp {
     from { opacity: 0; transform: translateY(28px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -85,13 +79,7 @@ img { max-width: 100%; display: block; }
 .reveal-delay-3    { transition-delay: 0.24s; }
 .reveal-delay-4    { transition-delay: 0.32s; }
 
-<<<<<<< HEAD
 /*TOP BAR (thin red strip above header)*/
-=======
-/* ================================================
-   TOP BAR (thin red strip above header)
-================================================ */
->>>>>>> 8a0a1e23c8ef204796043b66d82e36e2f3536cd3
 .top-bar {
     background: var(--ku-red);
     color: rgba(255,255,255,0.85);
@@ -109,13 +97,7 @@ img { max-width: 100%; display: block; }
 .top-bar a { color: rgba(255,255,255,0.85); text-decoration: none; }
 .top-bar a:hover { color: var(--white); text-decoration: underline; }
 
-<<<<<<< HEAD
 /*HEADER */
-=======
-/* ================================================
-   HEADER
-================================================ */
->>>>>>> 8a0a1e23c8ef204796043b66d82e36e2f3536cd3
 .site-header {
     background: var(--white);
     border-bottom: 3px solid var(--ku-red);
@@ -291,13 +273,7 @@ img { max-width: 100%; display: block; }
     display: flex; align-items: center; justify-content: center; gap: 6px;
 }
 
-<<<<<<< HEAD
 /* SECTIONS */
-=======
-/* ================================================
-   SECTIONS
-================================================ */
->>>>>>> 8a0a1e23c8ef204796043b66d82e36e2f3536cd3
 .section { padding: 72px 0; }
 .section-grey { background: var(--grey-50); }
 .section-red  { background: var(--ku-red); color: var(--white); }
@@ -314,24 +290,14 @@ img { max-width: 100%; display: block; }
     gap: 16px; margin-bottom: 40px;
 }
 
-<<<<<<< HEAD
 /* Divider line style */
-=======
-/* Divider line — KU style */
->>>>>>> 8a0a1e23c8ef204796043b66d82e36e2f3536cd3
 .ku-divider {
     width: 48px; height: 3px;
     background: var(--ku-red);
     margin-bottom: 20px;
 }
 
-<<<<<<< HEAD
 /* PROGRAMME CARDS*/
-=======
-/* ================================================
-   PROGRAMME CARDS — KU editorial style
-================================================ */
->>>>>>> 8a0a1e23c8ef204796043b66d82e36e2f3536cd3
 .programme-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -405,13 +371,7 @@ img { max-width: 100%; display: block; }
 }
 .programme-card:hover .card-arrow { transform: translateX(5px); }
 
-<<<<<<< HEAD
 /*INFO TILES*/
-=======
-/* ================================================
-   INFO TILES
-================================================ */
->>>>>>> 8a0a1e23c8ef204796043b66d82e36e2f3536cd3
 .info-tiles {
     display: grid; grid-template-columns: repeat(4,1fr); gap: 0;
     border: 1px solid var(--grey-200);
@@ -663,31 +623,96 @@ img { max-width: 100%; display: block; }
 .empty-state i { font-size: 2.5rem; color: var(--grey-400); display: block; margin-bottom: 16px; }
 .empty-state h3 { font-family: var(--font-serif); font-size: 1.2rem; margin-bottom: 8px; color: var(--grey-800); }
 
-/* ================================================
-   FOOTER
-================================================ */
-.site-footer { background: var(--black); color: rgba(255,255,255,0.7); }
-.footer-main { padding: 56px 0; }
-.footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 56px; }
-.footer-brand-name { font-family: var(--font-serif); font-size: 1.1rem; font-weight: 700; color: var(--white); margin-bottom: 10px; }
-.footer-brand-tagline { font-size: 0.85rem; font-weight: 300; line-height: 1.7; max-width: 260px; }
-.footer-col h4 { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255,255,255,0.4); margin-bottom: 16px; }
-.footer-col ul { list-style: none; }
-.footer-col li { margin-bottom: 8px; }
-.footer-col a {
-    color: rgba(255,255,255,0.65); text-decoration: none; font-size: 0.88rem;
-    display: flex; align-items: center; gap: 6px;
-    transition: color var(--transition);
+/* FOOTER */
+.site-footer {
+    background: var(--ku-red);
+    color: rgba(255,255,255,0.85);
 }
-.footer-col a:hover { color: var(--white); }
-.footer-col a i { font-size: 0.8rem; color: var(--ku-red); }
+
+.footer-inner {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 56px;
+    padding: 56px 0;
+}
+
+.footer-brand p,
+.footer-nav ul,
+.footer-contact p {
+    margin: 0;
+}
+
+.footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.footer-logo .logo-icon {
+    color: var(--white);
+    font-size: 1.2rem;
+}
+
+.footer-logo .logo-text {
+    font-family: var(--font-serif);
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--white);
+}
+
+.footer-brand p,
+.footer-contact p,
+.footer-nav a {
+    color: rgba(255,255,255,0.85);
+}
+
+.footer-nav h3,
+.footer-contact h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 14px;
+}
+
+.footer-nav ul {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-nav li {
+    margin-bottom: 10px;
+}
+
+.footer-nav a {
+    text-decoration: none;
+}
+
+.footer-nav a:hover {
+    color: var(--white);
+    text-decoration: underline;
+}
+
+.footer-nav a i {
+    color: rgba(255,255,255,0.8);
+}
+
+.footer-contact i {
+    color: var(--white);
+}
+
 .footer-bottom {
-    border-top: 1px solid rgba(255,255,255,0.08);
+    border-top: 1px solid rgba(255,255,255,0.2);
     padding: 18px 0;
-    display: flex; align-items: center; justify-content: space-between;
-    font-size: 0.8rem; color: rgba(255,255,255,0.35);
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.8);
 }
-.footer-red-bar { height: 4px; background: var(--ku-red); }
+
+.footer-bottom p {
+    margin: 0;
+    text-align: center;
+}
+
 
 /* ================================================
    RESPONSIVE
