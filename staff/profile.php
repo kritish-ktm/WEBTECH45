@@ -144,7 +144,7 @@ $initials = substr($initials, 0, 2);
         </div>
 
         <?php if ($success): ?>
-        <div class="alert alert-success">
+        <div class="alert success"
             <i class="bi bi-check-circle"></i> Your profile has been updated successfully.
         </div>
         <?php endif; ?>
